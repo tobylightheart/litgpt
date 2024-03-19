@@ -193,6 +193,11 @@ def main(
     if resume:
         fabric.print(f"Resuming training from {resume}")
         fabric.load(resume, state)
+    else:
+        def reset_weights(mod):
+            if hasattr(mod, "reset_parameters"):
+                mod.reset_parameters()   
+        model.apply(reset_weights)
 
     train_time = time.perf_counter()
     fit(fabric, devices, state, train_dataloader, val_dataloader, out_dir, tokenizer_dir, train, eval)
