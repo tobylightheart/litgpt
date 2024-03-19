@@ -6,7 +6,7 @@ from typing import Union, Optional, Tuple
 
 from torch.utils.data import DataLoader
 
-from litgpt import Tokenizer
+from litgpt.tokenizer import Tokenizer
 from litgpt.data import DataModule
 
 

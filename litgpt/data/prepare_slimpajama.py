@@ -5,7 +5,7 @@ import os
 import time
 from pathlib import Path
 
-from litgpt import Tokenizer
+from litgpt.tokenizer import Tokenizer
 from litgpt.utils import CLI
 from litgpt.data.prepare_starcoder import DataChunkRecipe
 
