@@ -247,8 +247,16 @@ def fit(
     val_loss = "n/a"
 
     warmup_iters = train.lr_warmup_steps * train.gradient_accumulation_iters(devices)
+    unsaved = False
     for train_data in train_iterator:
         if state["iter_num"] >= max_iters:
+            if unsaved:
+                save_checkpoint(
+                    fabric=fabric,
+                    state=state,
+                    out_dir=out_dir,
+                    tokenizer_dir=tokenizer_dir,
+                )
             break
 
         # determine and set the learning rate for this iteration
@@ -325,16 +333,34 @@ def fit(
             fabric.log_dict(metrics, step=state["iter_num"] - 1)
             fabric.barrier()
 
+        unsaved = True
         if train.save_interval is not None and not is_accumulating and state["step_count"] % train.save_interval == 0:
-            checkpoint_file = out_dir / f"step-{state['step_count']:08d}" / "lit_model.pth"
-            checkpoint_file.parent.mkdir(parents=True, exist_ok=True)
-            fabric.print(f"Saving checkpoint to {str(checkpoint_file)!r}")
-            fabric.save(checkpoint_file, state)
-            if fabric.global_rank == 0:
-                save_hyperparameters(setup, checkpoint_file.parent)
-                if tokenizer_dir is not None:
-                    copy_config_files(tokenizer_dir, checkpoint_file.parent)
-                save_config(model.config, checkpoint_file.parent)
+            save_checkpoint(
+                fabric=fabric,
+                state=state,
+                out_dir=out_dir,
+                tokenizer_dir=tokenizer_dir,
+            )
+            unsaved = False
+
+
+def save_checkpoint(
+    fabric,
+    state: dict,
+    out_dir: Path,
+    tokenizer_dir: Optional[Path],
+) -> None:
+    model = state["model"]
+
+    checkpoint_file = out_dir / f"step-{state['step_count']:08d}" / "lit_model.pth"
+    checkpoint_file.parent.mkdir(parents=True, exist_ok=True)
+    fabric.print(f"Saving checkpoint to {str(checkpoint_file)!r}")
+    fabric.save(checkpoint_file, state)
+    if fabric.global_rank == 0:
+        save_hyperparameters(setup, checkpoint_file.parent)
+        if tokenizer_dir is not None:
+            copy_config_files(tokenizer_dir, checkpoint_file.parent)
+        save_config(model.config, checkpoint_file.parent)
 
 
 @torch.no_grad()
