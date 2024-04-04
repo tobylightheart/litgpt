@@ -8,7 +8,7 @@ from typing import Dict, Optional, Tuple, Union
 import torch
 from lightning.fabric.utilities.load import _NotYetLoadedTensor as NotYetLoadedTensor
 
-from litgpt import Config
+from litgpt.config import Config
 from litgpt.scripts.convert_hf_checkpoint import layer_template, load_param
 from litgpt.utils import CLI, incremental_save, lazy_load
 
