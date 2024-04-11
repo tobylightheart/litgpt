@@ -193,7 +193,8 @@ def main(
     if resume:
         fabric.print(f"Resuming training from {resume}")
         fabric.load(resume, state)
-    else:
+    
+    if not initial_checkpoint_dir and not resume:
         def reset_weights(mod):
             if hasattr(mod, "reset_parameters"):
                 mod.reset_parameters()   
